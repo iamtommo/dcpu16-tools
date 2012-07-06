@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 const char *token_delimeters = " ,\t\n";
-char input[] = "SET A, 0x69\nSET B, 0x68";
+char input[] = "SET A, 0x69\nSET B, 0x68\nADD A, 0x01";
 char* token = NULL;//current token
 uint16_t PC = 0;//program counter
 uint16_t assembled[65535];//the assembled result
@@ -68,39 +68,39 @@ int hexstr_to_int(char* str) {
 int assemble_operand() {
 	next_token();
 
-	if (token == "a") {
+	if (strcmp(token, "a") == 0) {
 		return 0x00;
-	} else if (token == "b") {
+	} else if (strcmp(token, "b") == 0) {
 		return 0x01;
-	} else if (token == "c") {
+	} else if (strcmp(token, "c") == 0) {
 		return 0x02;
-	} else if (token == "x") {
+	} else if (strcmp(token, "x") == 0) {
 		return 0x03;
-	} else if (token == "y") {
+	} else if (strcmp(token, "y") == 0) {
 		return 0x04;
-	} else if (token == "z") {
+	} else if (strcmp(token, "z") == 0) {
 		return 0x05;
-	} else if (token == "i") {
+	} else if (strcmp(token, "i") == 0) {
 		return 0x06;
-	} else if (token == "j") {
+	} else if (strcmp(token, "j") == 0) {
 		return 0x07;
 	//TODO: Bracketed registers
-	} else if (token == "pop") {
+	} else if (strcmp(token, "pop") == 0) {
 		return 0x18;
-	} else if (token == "peek") {
+	} else if (strcmp(token, "peek") == 0) {
 		return 0x19;
-	} else if (token == "push") {
+	} else if (strcmp(token, "push") == 0) {
 		return 0x1a;
-	} else if (token == "sp") {
+	} else if (strcmp(token, "sp") == 0) {
 		return 0x1b;
-	} else if (token == "pc") {
+	} else if (strcmp(token, "pc") == 0) {
 		return 0x1c;
-	} else if (token == "o") {
+	} else if (strcmp(token, "o") == 0) {
 		return 0x1d;
 	} else {
 		if (is_string(token)) {
 			assembled[PC] = 0;
-			//TODO: Strings
+			//TODO: Strings/labels
 			return 0x1f;
 		} else if (is_number(token)) {
 			int n = hexstr_to_int(token);
@@ -117,22 +117,39 @@ int assemble_operand() {
 }
 
 int get_opcode(char *op) {
-	if (op == "set") return 0x1;
-	if (op == "add") return 0x2;
-	if (op == "sub") return 0x3;
-	if (op == "mul") return 0x4;
-	if (op == "div") return 0x5;
-	if (op == "mod") return 0x6;
-	if (op == "shl") return 0x7;
-	if (op == "shr") return 0x8;
-	if (op == "and") return 0x9;
-	if (op == "bor") return 0xa;
-	if (op == "xor") return 0xb;
-	if (op == "ife") return 0xc;
-	if (op == "ifn") return 0xd;
-	if (op == "ifg") return 0xe;
-	if (op == "ifb") return 0xf;
-	return 0x0;//non-basic opcode
+	if (strcmp(op, "set") == 0) {
+		return 0x1;
+	} else if (strcmp(op, "add") == 0) {
+		return 0x2;
+	} else if (strcmp(op, "sub") == 0) {
+		return 0x3;
+	} else if (strcmp(op, "mul") == 0) {
+		return 0x4;
+	} else if (strcmp(op, "div") == 0) {
+		return 0x5;
+	} else if (strcmp(op, "mod") == 0) {
+		return 0x6;
+	} else if (strcmp(op, "shl") == 0) {
+		return 0x7;
+	} else if (strcmp(op, "shr") == 0) {
+		return 0x8;
+	} else if (strcmp(op, "and") == 0) {
+		return 0x9;
+	} else if (strcmp(op, "bor") == 0) {
+		return 0xa;
+	} else if (strcmp(op, "xor") == 0) {
+		return 0xb;
+	} else if (strcmp(op, "ife") == 0) {
+		return 0xc;
+	} else if (strcmp(op, "ifn") == 0) {
+		return 0xd;
+	} else if (strcmp(op, "ifg") == 0) {
+		return 0xe;
+	} else if (strcmp(op, "ifb") == 0) {
+		return 0xf;
+	} else {
+		return 0x0;//non-basic opcode
+	}
 }
 
 void assemble() {
@@ -158,8 +175,10 @@ void assemble() {
 		b = assemble_operand();
 	}
 
-	printf("o[%x] a[%x] b[%x]\n", get_opcode(op), a, b);
-	assembled[_PC] = get_opcode(op) | (a << 4) | (b << 10);
+	int opcode = get_opcode(op);
+	printf("Opcode '%s' > '%x'\n", op, opcode);
+	printf("o[%x] a[%x] b[%x]\n", opcode, a, b);
+	assembled[_PC] = opcode | (a << 4) | (b << 10);
 }
 
 int main(int argc, char **argv) {
